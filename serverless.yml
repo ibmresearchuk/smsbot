@@ -1,0 +1,25 @@
+service: smsbot
+
+provider:
+  name: openwhisk
+
+custom: 
+  credentials: ${file(credentials.yml)}
+
+functions:
+  incoming:
+    handler: handler.incoming
+    parameters:
+      numbers: ${self:custom.credentials.numbers}
+      slack: ${self:custom.credentials.slack}
+    annotations:
+      web-export: true
+  reply:
+    handler: handler.reply
+    parameters:
+      twilio: ${self:custom.credentials.twilio}
+    annotations:
+      web-export: true
+
+plugins:
+  - serverless-openwhisk
