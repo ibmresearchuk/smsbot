@@ -1,66 +1,166 @@
-# Serverless OpenWhisk Node.js Template
+# smsbot - ☎️🤖
 
-Hello! 😎
+### what?
 
-This is a template Node.js service for the OpenWhisk platform. Before you can deploy your service, please follow the instructions below…
+**smsbot provides an integration with Slack that connects SMS messages into channels.**
 
-### Have you set up your account credentials?
+People can text an external number and have their messages posted into the channel. Channel users can respond to the messages and have their response sent back to the sender using SMS.![smsbot](images/slack_text_hidden.jpg)
 
-Before you can deploy your service to OpenWhisk, you need to have an account registered with the platform.
+### how?
 
-- *Want to run the platform locally?* Please read the project's [*Quick Start*](https://github.com/openwhisk/openwhisk#quick-start) guide for deploying it locally.
-- *Want to use a hosted provider?* Please sign up for an account with [IBM Bluemix](https://console.ng.bluemix.net/) and then follow the instructions for getting access to [OpenWhisk on Bluemix](https://console.ng.bluemix.net/openwhisk/). 
+smsbot was developed in under a few hours and less than one hundred lines of code using a [serverless platform](http://openwhisk.org/) and [cloud](https://www.twilio.com/) [services](https://api.slack.com/).
 
-Account credentials for OpenWhisk can be provided through a configuration file or environment variables. This plugin requires the API endpoint, namespace and authentication credentials.
-
-**Do you want to use a configuration file for storing these values?** Please [follow the instructions](https://console.ng.bluemix.net/openwhisk/cli) for setting up the OpenWhisk command-line utility. This tool stores account credentials in the `.wskprops` file in the user's home directory. The plugin automatically extracts credentials from this file at runtime.  No further configuration is needed.
-
-**Do you want to use environment variables for credentials?** Use the following environment variables to be pass in account credentials. These values override anything extracted from the configuration file.
-
-- *OW_APIHOST* - Platform endpoint, e.g. `openwhisk.ng.bluemix.net`
-- *OW_AUTH* - Authentication key, e.g. `xxxxxx:yyyyy
+More details in this blog post: 
 
 
+### setting it up
 
-### Have you installed and setup the provider plugin?
+Follow the steps below to create your own instance of smsbot.
 
-Using the framework with the OpenWhisk platform needs you to install the provider plugin and link this to your service. 
+#### openwhisk
 
-####  Install the provider plugin
+Register for an account with an OpenWhisk provider, e.g. [IBM Bluemix](https://console.ng.bluemix.net/). 
+
+[Set up](https://console.ng.bluemix.net/openwhisk/learn/cli) the `wsk` CLI and run the command to authenticate against the platform endpoint.
 
 ```
-$ npm install --global serverless-openwhisk
+wsk property set --apihost openwhisk.ng.bluemix.net --auth SECRET
 ```
 
-*Due to an [outstanding issue](https://github.com/serverless/serverless/issues/2895) with provider plugins, the [OpenWhisk provider](https://github.com/serverless/serverless-openwhisk) must be installed as a global module.*
+#### serverless framework
 
-
-#### Link provider plugin to service directory
-
-Using `npm link` will import the provider plugin into the service directory. Running `npm install` will automatically perform this using a `post install` script.
+Install the [The Serverless Framework](https://github.com/serverless/serverless) and the [OpenWhisk provider plugin](https://github.com/serverless/serverless-openwhisk).
 
 ```
-$ npm link serverless-openwhisk
-or
+npm install --global serverless serverless-openwhisk
+```
+
+#### source code
+
+Download the [source code](https://github.com/jthomas/smsbot) from Github and install the project dependencies.
+
+```
+$ git clone https://github.com/ibmets/smsbot.git
+$ cd smsbot
 $ npm install
 ```
 
+Create a new file called `credentials.yml` with the following content.
 
-
-**_…and that's it!_**
-
-### Deploy Service
-
-Use the `serverless` command to deploy your service. The sample `handler.js` file can be deployed without modification.
-
-```shell
-serverless deploy
+```yaml
+twilio:
+    account:
+    auth:
+    number:
+numbers:
+slack:
+    webhook:
 ```
 
+#### twilio
 
+Register an account with Twilio and provision [a new phone number](https://www.twilio.com/console/phone-numbers/search). Make a note of the phone number. Retrieve the account identifier and auth token from the [Twilio console](https://www.twilio.com/console).
 
-### Issues / Feedback / Feature Requests?
+Fill in the account identifier, auth token and phone number in the `credentials.yml` file.
+
+```yaml
+twilio:
+    account: AC_USER_ID
+    auth: AUTH_TOKEN
+    number: '+441234567890'
+```
+
+*Important: the `twilio.number` property value must be a quoted string.*
+
+#### phone numbers
+
+During Twilio's free trial, you will need [manually verify each phone number](https://support.twilio.com/hc/en-us/articles/223136107-How-does-Twilio-s-Free-Trial-work-) that you want to send messages to. 
+
+Fill in all verified numbers in `credentials.yml`.
+
+```yaml
+numbers:
+    '+441234567890': Joe Smith
+    '+441234567891': Jane Smith
+```
+
+*Important: the `numbers` property values must be a quoted strings.*
+
+#### incoming webhook
+
+Create a new [Incoming Webhook](https://api.slack.com/incoming-webhooks) integration for the Slack channel messages should appear in.
+
+Fill in the `slack.webhook` property in `credentials.yml` with this url.
+
+```yaml
+slack:
+    webhook: https://hooks.slack.com/services/XXXX/YYYY/ZZZZ
+```
+
+#### deploy application
+
+Use The Serverless Framework to deploy your application.
+
+```
+$ serverless deploy
+Serverless: Packaging service...
+Serverless: Compiling Functions...
+Serverless: Compiling API Gateway definitions...
+Serverless: Compiling Rules...
+Serverless: Compiling Triggers & Feeds...
+Serverless: Deploying Functions...
+Serverless: Deployment successful!
+
+Service Information
+platform:	openwhisk.ng.bluemix.net
+namespace:	_
+service:	smsbot
+
+actions:
+smsbot-dev-incoming    smsbot-dev-reply
+
+triggers:
+**no triggers deployed**
+
+rules:
+**no rules deployed**
+
+endpoints:
+**no routes deployed**
+```
+
+#### twilio webhook
+
+On the [Phone Numbers](https://www.twilio.com/console/phone-numbers/incoming) page in the Twilio console, configure the "*Messaging*" webhook URL.
+
+Use this Web Action URL, replacing `user@host.com_dev` with your namespace.
+
+`https://openwhisk.ng.bluemix.net/api/v1/experimental/web/user@host.com_dev/default/smsbot-dev-incoming.http`
+
+#### outgoing webhook
+
+Create a new [Outgoing Webhook](https://api.slack.com/custom-integrations/outgoing-webhooks) integration for the Slack channel messages should appear in. Use `smsbot` as the *Trigger Word*.
+
+Use this Web Action URL, replacing `user@host.com_dev` with your namespace.
+
+`https://openwhisk.ng.bluemix.net/api/v1/experimental/web/user@host.com_dev/default/smsbot-dev-reply.json`
+
+### usage
+
+Send a text message to the phone number you registered through Twilio. smsbot should post the contents into Slack and send an SMS response with the message "*Thanks for letting us know!*". 
+
+![smsbot](images/slack_text_hidden.jpg)
+
+If you send a channel message starting with the trigger word (*smsbot*), the phone number should receive a new SMS message with the message text.
+
+![smsbot](images/sms_app.png)
+
+Awesome-sauce 😎.
+
+#### issues / feedback / feature requests?
 
 If you have any issues, comments or want to see new features, please file an issue in the project repository:
 
-https://github.com/serverless/serverless-openwhisk
+[https://github.com/ibmets/smsbot](https://github.com/ibmets/smsbot)
+
+Made by [IBM Emerging Technology Services](https://emerging-technology.co.uk/).
