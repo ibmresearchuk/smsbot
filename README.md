@@ -11,6 +11,7 @@ People can text an external number and have their messages posted into the chann
 smsbot was developed in under a few hours and less than one hundred lines of code using a [serverless platform](http://openwhisk.org/) and [cloud](https://www.twilio.com/) [services](https://api.slack.com/).
 
 More details in this blog post: 
+https://medium.com/@jamesthom.as/building-an-sms-bot-for-slack-d52b5bc397e4
 
 
 ### setting it up
