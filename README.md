@@ -18,22 +18,17 @@ https://medium.com/@jamesthom.as/building-an-sms-bot-for-slack-d52b5bc397e4
 
 Follow the steps below to create your own instance of smsbot.
 
-#### openwhisk
+#### ibm cloud functions
 
-Register for an account with an OpenWhisk provider, e.g. [IBM Bluemix](https://console.ng.bluemix.net/). 
-
-[Set up](https://console.ng.bluemix.net/openwhisk/learn/cli) the `wsk` CLI and run the command to authenticate against the platform endpoint.
-
-```
-wsk property set --apihost openwhisk.ng.bluemix.net --auth SECRET
-```
+- Register for an account with [IBM Cloud Functions](https://console.bluemix.net/openwhisk/).
+- Follow the [instructions](https://console.bluemix.net/openwhisk/learn/cli) to set up the IBM Cloud Functions CLI.
 
 #### serverless framework
 
-Install the [The Serverless Framework](https://github.com/serverless/serverless) and the [OpenWhisk provider plugin](https://github.com/serverless/serverless-openwhisk).
+Install the [The Serverless Framework](https://github.com/serverless/serverless).
 
 ```
-npm install --global serverless serverless-openwhisk
+npm install serverless
 ```
 
 #### source code

@@ -3,14 +3,12 @@
   "version": "1.0.0",
   "description": "SMS Bot for Slack using Twilio and OpenWhisk.",
   "main": "handler.js",
-  "scripts": {
-    "postinstall": "npm link serverless-openwhisk"
-  },
   "keywords": [
     "serverless",
     "openwhisk"
   ],
   "dependencies": {
+    "serverless-openwhisk": "^0.18.0",
     "twilio": "^2.11.1"
   },
   "author": "James Thomas <james@jamesthom.as>",
